@@ -57,12 +57,7 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
 
     %}
     
-
-    cost=ones(yDim, xDim, zDim);
-    
-    
-    % Dimensionen stimmen nicht überein (IDs, cost ...)
-    % Berechnung erneut Prüfen!
+    cost(double(frames(:,:,3,i)));
     
     for i = 1:size(frames,4)
         %Get the color-channels
@@ -77,14 +72,8 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
         %calculate ID
         IDs=floor(double(red)*f) + floor(double(green)*f)*bins + floor(double(blue)*f)*bins*bins+1;
         
-        size(IDs)
-        size(cost)
-        size((nHfc(IDs)/(nHfc(IDs)+nHbc(IDs))))
-        
-        pause;
-        
         %calculate cost value
-        cost(:,:,i) = (nHfc(IDs)/(nHfc(IDs)+nHbc(IDs)));
+        cost = (nHfc(IDs)/(nHfc(IDs)+nHbc(IDs)));
 
         
 
@@ -93,13 +82,9 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
         
         %find(isnan(cost))
         
-
+        %set every not a number to zero
+        cost(isnan(cost))=0;
     end
-    
-     %set every not a number to zero
-    cost(isnan(cost))=0;
-    cost((cost<0.5))=0;    
-        
     %----------------------------------------------------------------------
     % Task e: Filter cost-volume with guided filter
     %----------------------------------------------------------------------

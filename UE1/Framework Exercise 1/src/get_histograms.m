@@ -29,11 +29,25 @@ function [bok,scribble_count, fg_scribbles, histo_fg, histo_bg] = get_histograms
     %----------------------------------------------------------------------
     % Task a: Filter user scribbles to indicate foreground and background   
     %----------------------------------------------------------------------
-
-
+    bgBinary = 0;
+    fgBinary = 0;
+    bgBinary = abs(reference_frame(:,:,1)-frames_scribbles(:,:,1,2)) | abs(reference_frame(:,:,2)-frames_scribbles(:,:,2,2)) | abs(reference_frame(:,:,3)-frames_scribbles(:,:,3,2));
+    fgBinary = abs(reference_frame(:,:,1)-frames_scribbles(:,:,1,1)) | abs(reference_frame(:,:,2)-frames_scribbles(:,:,2,1)) | abs(reference_frame(:,:,3)-frames_scribbles(:,:,3,1));
     %----------------------------------------------------------------------
     % Task b: Generate color models for foreground and background
     %----------------------------------------------------------------------
-    
+    fg_scribbles = fgBinary;
+    redo = reference_frame(:,:,1);
+    blueo = reference_frame(:,:,2);
+    greeno = reference_frame(:,:,3);
+    red = redo(bgBinary);
+    blue = blueo(bgBinary);
+    green = greeno(bgBinary);
+    histo_bg = colHist(red, blue, green, bins);
+
+    red = redo(fgBinary);
+    blue = blueo(fgBinary);
+    green = greeno(fgBinary);
+    histo_fg = colHist(red, blue, green, bins);
     
 end

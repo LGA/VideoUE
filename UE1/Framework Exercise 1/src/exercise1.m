@@ -1,6 +1,9 @@
 function exercise1(input_directory, output_directory, file_extension)
     % close all figures
-    close all;  
+    close all;
+    
+    % 16^3 = 4096 - erste Annahme
+    bins = 16;
 
     % check optional file extension parameter
     if (~exist('file_extension')) || (isempty(file_extension))
@@ -29,7 +32,7 @@ function exercise1(input_directory, output_directory, file_extension)
     bok = false;
     % call function get_histograms 
     % [return parameters]=get_histograms(parameters,...);
-    
+    [bok, scribble_count, fg_scribbles, histo_fg, histo_bg] = get_histograms(input_directory, file_list, bins);
     
     if (~bok)
         disp(['No scribble or no reference frame found in input directory ' input_directory '!'])
@@ -54,7 +57,7 @@ function exercise1(input_directory, output_directory, file_extension)
         count = count+1;
         
         % cache frames
-        frames(:,:,:,count) = uint8(frame(:,:,:)); 
+        frames(:,:,:,count) = uint8(frame(:,:,:));
               
 
         % every <loop_size> frames run segmentation
@@ -64,7 +67,7 @@ function exercise1(input_directory, output_directory, file_extension)
             %--------------------------------------------------------------
             % call function segmentation 
             % return parameter=segmentation(parameters,...);
-
+            foreground_Map = segmentation(frames, fg_scribbles, histo_fg, histo_bg, bins);
             % store frames
             for i = 1:size(frames,4)    
                 framecount=(loop_cnt*loop_size)+i;
