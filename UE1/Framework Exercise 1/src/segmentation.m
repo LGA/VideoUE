@@ -16,10 +16,7 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
 
     nHfc = Hfc;
     nHbc = Hbc;
-    
-%     size(nHfc)
-%     pause;
-    
+
     %----------------------------------------------------------------------
     % Task c: Generate cost-volume
     %----------------------------------------------------------------------
@@ -58,34 +55,42 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     %}
     
 
-    cost=ones(yDim, xDim, zDim);
-    
-    
-    % Dimensionen stimmen nicht überein (IDs, cost ...)
-    % Berechnung erneut Prüfen!
+    cost=ones(yDim, xDim, size(frames,4));
     
     for i = 1:size(frames,4)
         %Get the color-channels
-        red = double(frames(:,:,1,i));
-        green = frames(:,:,2,i);
-        blue = double(frames(:,:,3,i));
-        
-        
-        
+%         red = double(frames(:,:,1,i));
+%         green = double(frames(:,:,2,i));
+%         blue = double(frames(:,:,3,i));
+%         
         %normalize
         f=double(bins)/256.0;
         %calculate ID
-        IDs=floor(double(red)*f) + floor(double(green)*f)*bins + floor(double(blue)*f)*bins*bins+1;
+        matrixPixelID = zeros(yDim, xDim, size(frames,4));
+        %IDs=floor(double(red)*f) + floor(double(green)*f)*bins + floor(double(blue)*f)*bins*bins+1;
         
-        size(IDs)
-        size(cost)
-        size((nHfc(IDs)/(nHfc(IDs)+nHbc(IDs))))
+        %dirtcode powered by Michael - your professional dirt-coder
+        for y = 1:yDim
+           for x = 1:xDim
+                matrixPixelID(y,x,i) = floor(double(frames(y,x,1,i))*f) + floor(double(frames(y,x,2,i))*f)*bins + floor(double(frames(y,x,3,i))*f)*bins*bins+1;
+                cost(y,x,i) = nHfc(matrixPixelID(y,x,i))/(nHfc(matrixPixelID(y,x,i))+nHbc(matrixPixelID(y,x,i)));
+           end
+        end
         
-        pause;
+        %dirtcode
+        
+%         size(IDs)
+%         size(cost)
+%         size(nHfc)
+%         size(nHbc)
+%         size((nHfc(IDs)/(nHfc(IDs)+nHbc(IDs))))
+        
+        
         
         %calculate cost value
-        cost(:,:,i) = (nHfc(IDs)/(nHfc(IDs)+nHbc(IDs)));
-
+%       cost(i) = (nHfc(IDs)/(nHfc(IDs)+nHbc(IDs)));
+%         size(cost)
+%         pause;
         
 
         %figure;
@@ -96,9 +101,9 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
 
     end
     
-     %set every not a number to zero
+    %set every not a number to zero
     cost(isnan(cost))=0;
-    cost((cost<0.5))=0;    
+    %cost((cost<0.5))=0;    
         
     %----------------------------------------------------------------------
     % Task e: Filter cost-volume with guided filter
@@ -107,17 +112,19 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     % -> FORUM: wie sind die skalarparameter r, rt, eps zu wählen?
     %
     seg = guidedfilter_vid_color(frames, cost, 1, 1, 5);
-    
+    %Threshold berücksichtigen oder so
+%     fgIndizes = cost<0.5;
+%     size(fgIndizes)
+%     seg = seg(fgIndizes);
+%     figure; imshow(seg(:,:,1))
     %----------------------------------------------------------------------
     % Task f: delete regions which are not connected to foreground scribble
     %----------------------------------------------------------------------
     
     seg_n = keepConnected(seg, FGScribbles);
-
     %----------------------------------------------------------------------
     % Task g: Guided feathering
     %----------------------------------------------------------------------
-    foreground_map=guidedfilter_vid_color(seg, seg_n, 1, 1, 5);
-    
+    foreground_map=guidedfilter_vid_color(frames, seg_n, 1, 1, 5);
     
 end
