@@ -1,19 +1,12 @@
 function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     
+    % ============================
+    % get dimension of our frames - should usually be (320 * 240 * 10)
     [yDim, xDim, zDim, ~]=size(frames);
     
-    %Normalize
-    %nHfc = Hfc / (yDim * xDim * 3);
-    %nHbc = Hbc / (yDim * xDim * 3);
-
-    %Annahme: cost ist bereits normalisiert
-    % --> Frage ins Forum
-%     nHfc = repmat(Hfc, [yDim xDim zDim]);
-%     nHbc = repmat(Hbc, [yDim xDim zDim]);
-    
-%     nHfc = zeros(yDim, xDim, zDim);
-%     nHfc = nHfc + Hfc;
-
+    % ============================
+    % We assume that the histogram is already normalized
+    % therefor we simply copy it to another element
     nHfc = Hfc;
     nHbc = Hbc;
 
@@ -55,42 +48,41 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     %}
     
 
+    % ============================
+    % Better performance if not done in loops - but it works this way ;)
+    
+    %create cost matrix - 3 dimensions (ySize, xSize, z=Frame Count)
     cost=ones(yDim, xDim, size(frames,4));
     
-    for i = 1:size(frames,4)
-        %Get the color-channels
-%         red = double(frames(:,:,1,i));
-%         green = double(frames(:,:,2,i));
-%         blue = double(frames(:,:,3,i));
-%         
+    %iterate over the (10) frames
+    for i = 1:size(frames,4)    
         %normalize
         f=double(bins)/256.0;
+        
         %calculate ID
         matrixPixelID = zeros(yDim, xDim, size(frames,4));
         %IDs=floor(double(red)*f) + floor(double(green)*f)*bins + floor(double(blue)*f)*bins*bins+1;
         
+        matrixPixelID(:,:,i) = floor(double(frames(:,:,1,i))*f) + floor(double(frames(:,:,2,i))*f)*bins + floor(double(frames(:,:,3,i))*f)*bins*bins+1;
+        
+        
         %dirtcode powered by Michael - your professional dirt-coder
         for y = 1:yDim
            for x = 1:xDim
-                matrixPixelID(y,x,i) = floor(double(frames(y,x,1,i))*f) + floor(double(frames(y,x,2,i))*f)*bins + floor(double(frames(y,x,3,i))*f)*bins*bins+1;
+                %matrixPixelID(y,x,i) = floor(double(frames(y,x,1,i))*f) + floor(double(frames(y,x,2,i))*f)*bins + floor(double(frames(y,x,3,i))*f)*bins*bins+1;
+                %nHfc(matrixPixelID(y,x,i))
+                %nHbc(matrixPixelID(y,x,i))
+                %pause;
+                
                 cost(y,x,i) = nHfc(matrixPixelID(y,x,i))/(nHfc(matrixPixelID(y,x,i))+nHbc(matrixPixelID(y,x,i)));
            end
         end
         
+        cost
+        pause;
+        
         %dirtcode
         
-%         size(IDs)
-%         size(cost)
-%         size(nHfc)
-%         size(nHbc)
-%         size((nHfc(IDs)/(nHfc(IDs)+nHbc(IDs))))
-        
-        
-        
-        %calculate cost value
-%       cost(i) = (nHfc(IDs)/(nHfc(IDs)+nHbc(IDs)));
-%         size(cost)
-%         pause;
         
 
         %figure;
@@ -101,8 +93,18 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
 
     end
     
+    
+    
+        cost
+        pause;
+        
+    
     %set every not a number to zero
     cost(isnan(cost))=0;
+    
+
+    pause;
+    
     %cost((cost<0.5))=0;    
         
     %----------------------------------------------------------------------
@@ -120,8 +122,8 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     %----------------------------------------------------------------------
     % Task f: delete regions which are not connected to foreground scribble
     %----------------------------------------------------------------------
-    
     seg_n = keepConnected(seg, FGScribbles);
+    
     %----------------------------------------------------------------------
     % Task g: Guided feathering
     %----------------------------------------------------------------------

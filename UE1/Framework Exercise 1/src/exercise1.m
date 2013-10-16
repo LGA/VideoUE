@@ -2,7 +2,9 @@ function exercise1(input_directory, output_directory, file_extension)
     % close all figures
     close all;
     
-    % 16^3 = 4096 - erste Annahme
+    % ============================
+    % 16 Bins for each RGB channel
+    % 16^3 combinations = 4096 
     bins = 16;
 
     % check optional file extension parameter
@@ -43,7 +45,12 @@ function exercise1(input_directory, output_directory, file_extension)
     count=0;
     loop_cnt = 0;
     loop_size= 10;
-
+    
+    
+    % ============================
+    % Adds 10 frames to <frames> matrix, runs segmentation for 
+    % these 10 and writes the output to files
+    
     for j = 1:(numel(file_list))
         frame_name = file_list(j).name;
 
@@ -67,7 +74,12 @@ function exercise1(input_directory, output_directory, file_extension)
             %--------------------------------------------------------------
             % call function segmentation 
             % return parameter=segmentation(parameters,...);
+            
+            % ============================
+            % PARAMS (10 buffered frames, binary map of foreground
+            % scribbles, histogram FG, histogram BG, bin size)
             foreground_Map = segmentation(frames, fg_scribbles, histo_fg, histo_bg, bins);
+            
             % store frames
             for i = 1:size(frames,4)    
                 framecount=(loop_cnt*loop_size)+i;

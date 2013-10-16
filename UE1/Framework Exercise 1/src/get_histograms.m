@@ -29,17 +29,33 @@ function [bok,scribble_count, fg_scribbles, histo_fg, histo_bg] = get_histograms
     %----------------------------------------------------------------------
     % Task a: Filter user scribbles to indicate foreground and background   
     %----------------------------------------------------------------------
+    
+    % ============================
+    % create empty binary images for the background and foreground
     bgBinary = 0;
     fgBinary = 0;
+    
+    % ============================
+    % fill the binary images with the scribble
+    % absolute difference between each channel is calculated and connected
+    % with logical OR
     bgBinary = abs(reference_frame(:,:,1)-frames_scribbles(:,:,1,2)) | abs(reference_frame(:,:,2)-frames_scribbles(:,:,2,2)) | abs(reference_frame(:,:,3)-frames_scribbles(:,:,3,2));
     fgBinary = abs(reference_frame(:,:,1)-frames_scribbles(:,:,1,1)) | abs(reference_frame(:,:,2)-frames_scribbles(:,:,2,1)) | abs(reference_frame(:,:,3)-frames_scribbles(:,:,3,1));
+    
     %----------------------------------------------------------------------
     % Task b: Generate color models for foreground and background
     %----------------------------------------------------------------------
     fg_scribbles = fgBinary;
+    
+    % ============================
+    % Split reference frame into 3 RGB channels
     redo = reference_frame(:,:,1);
     blueo = reference_frame(:,:,2);
     greeno = reference_frame(:,:,3);
+    
+    % ============================
+    % create a color histogram by calling "colHist" for both back and
+    % foreground, using 
     red = redo(bgBinary);
     blue = blueo(bgBinary);
     green = greeno(bgBinary);

@@ -1,19 +1,12 @@
 function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     
+    % ============================
+    % get dimension of our frames - should usually be (320 * 240 * 10)
     [yDim, xDim, zDim, ~]=size(frames);
     
-    %Normalize
-    %nHfc = Hfc / (yDim * xDim * 3);
-    %nHbc = Hbc / (yDim * xDim * 3);
-
-    %Annahme: cost ist bereits normalisiert
-    % --> Frage ins Forum
-%     nHfc = repmat(Hfc, [yDim xDim zDim]);
-%     nHbc = repmat(Hbc, [yDim xDim zDim]);
-    
-%     nHfc = zeros(yDim, xDim, zDim);
-%     nHfc = nHfc + Hfc;
-
+    % ============================
+    % We assume that the histogram is already normalized
+    % therefor we simply copy it to another element
     nHfc = Hfc;
     nHbc = Hbc;
 
@@ -55,16 +48,16 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     %}
     
 
+    % ============================
+    % Better performance if not done in loops - but it works this way ;)
+    
+    %create cost matrix - 3 dimensions (ySize, xSize, z=
     cost=ones(yDim, xDim, size(frames,4));
     
-    for i = 1:size(frames,4)
-        %Get the color-channels
-%         red = double(frames(:,:,1,i));
-%         green = double(frames(:,:,2,i));
-%         blue = double(frames(:,:,3,i));
-%         
+    for i = 1:size(frames,4)    
         %normalize
         f=double(bins)/256.0;
+        
         %calculate ID
         matrixPixelID = zeros(yDim, xDim, size(frames,4));
         %IDs=floor(double(red)*f) + floor(double(green)*f)*bins + floor(double(blue)*f)*bins*bins+1;
@@ -79,18 +72,6 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
         
         %dirtcode
         
-%         size(IDs)
-%         size(cost)
-%         size(nHfc)
-%         size(nHbc)
-%         size((nHfc(IDs)/(nHfc(IDs)+nHbc(IDs))))
-        
-        
-        
-        %calculate cost value
-%       cost(i) = (nHfc(IDs)/(nHfc(IDs)+nHbc(IDs)));
-%         size(cost)
-%         pause;
         
 
         %figure;
@@ -103,6 +84,10 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     
     %set every not a number to zero
     cost(isnan(cost))=0;
+    
+    cost
+    pause;
+    
     %cost((cost<0.5))=0;    
         
     %----------------------------------------------------------------------
@@ -112,18 +97,19 @@ function foreground_map = segmentation(frames,FGScribbles,Hfc,Hbc,bins)
     % -> FORUM: wie sind die skalarparameter r, rt, eps zu wählen?
     %
     seg = guidedfilter_vid_color(frames, cost, 1, 1, 5);
-    fgIndizes = cost(cost<0.5));
-    foreground = seg(
+    %Threshold berücksichtigen oder so
+%     fgIndizes = cost<0.5;
+%     size(fgIndizes)
+%     seg = seg(fgIndizes);
+%     figure; imshow(seg(:,:,1))
     %----------------------------------------------------------------------
     % Task f: delete regions which are not connected to foreground scribble
     %----------------------------------------------------------------------
-    
     seg_n = keepConnected(seg, FGScribbles);
-
+    
     %----------------------------------------------------------------------
     % Task g: Guided feathering
     %----------------------------------------------------------------------
-    foreground_map=guidedfilter_vid_color(seg, seg_n, 1, 1, 5);
-    
+    foreground_map=guidedfilter_vid_color(frames, seg_n, 1, 1, 5);
     
 end
